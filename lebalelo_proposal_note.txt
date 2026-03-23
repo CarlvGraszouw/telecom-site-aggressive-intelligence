@@ -1,0 +1,136 @@
+================================================================================
+                    LEBALELO SITE SECURITY SOLUTION
+                         PROPOSAL SUMMARY NOTE
+================================================================================
+
+Prepared by: Aggressive Intelligence
+Presented to: TowerCo
+Site: Lebalelo
+Date: March 2025
+Classification: Commercial – Proposal
+
+--------------------------------------------------------------------------------
+PURPOSE
+--------------------------------------------------------------------------------
+
+This note accompanies the browser-based presentation titled "Securing Lebalelo –
+Complete IoT Perimeter Protection Powered by On-Site Sigfox Base Station." It
+captures the commercial and technical rationale for deploying a Sigfox Access
+Station Micro on the existing tower structure, together with Sigfox-native
+sensors and cloud integration, to close a critical RF coverage gap and restore
+reliable fence, perimeter, and asset monitoring.
+
+--------------------------------------------------------------------------------
+EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+
+TowerCo operates high-value infrastructure at Lebalelo where physical security
+and asset protection depend on dependable IoT connectivity. Current Sigfox
+network coverage at the site is insufficient: sensors experience low signal
+strength across the property, leading to missed alarms, delayed notifications,
+and reduced confidence in automated monitoring.
+
+Aggressive Intelligence proposes a turnkey solution: install a Sigfox Access
+Station Micro directly on the Lebalelo tower, powered from existing site
+electrical and backhaul infrastructure. This delivers full local Sigfox
+coverage without new civil works, with sensor traffic carried over the tower's
+existing fiber or microwave link to the cloud. The result is immediate,
+predictable connectivity for vibration, perimeter, environmental, and asset
+tracking devices already aligned with Sigfox technology.
+
+--------------------------------------------------------------------------------
+PROBLEM STATEMENT
+--------------------------------------------------------------------------------
+
+• Macro cellular and public LPWAN maps do not guarantee in-building or
+  perimeter-grade service at every point on a fenced compound.
+
+• Fence-line and ground-level sensors are often in RF shadow relative to
+  distant base stations.
+
+• Without reliable uplink, security workflows break: correlation with CCTV,
+  control-room dashboards, and mobile alerting becomes inconsistent.
+
+• Insurance and operational risk increase when electronic monitoring cannot
+  be demonstrated as continuous and auditable.
+
+--------------------------------------------------------------------------------
+PROPOSED ARCHITECTURE
+--------------------------------------------------------------------------------
+
+1. Tower-mounted Sigfox Access Station Micro
+   – Co-located with existing power and grounding practices.
+   – Uses site backhaul; no incremental recurring connectivity charge beyond
+     current tower service model.
+
+2. Local Sigfox coverage
+   – Optimised for the full Lebalelo footprint, including fence lines and
+     asset storage zones.
+
+3. Sensor ecosystem
+   – Perimeter: vibration and cut-detection on fence structures.
+   – Intrusion: motion and thermal where required by site layout.
+   – Assets: equipment and high-value movable asset trackers.
+   – Environment: temperature, flood, and fire signalling as needed.
+   – CCTV: event-driven triggering where integrated with the security stack.
+
+4. Cloud and operations
+   – Alarm delivery to control room systems and mobile applications.
+   – Dashboards for health, battery status, and exception reporting.
+
+--------------------------------------------------------------------------------
+COMMERCIAL HIGHLIGHTS
+--------------------------------------------------------------------------------
+
+• Target outcome: 100% site coverage for defined sensor classes under the new
+  local cell.
+
+• Operating expenditure: no additional OPEX line item for wide-area IoT
+  connectivity beyond existing tower utilities and backhaul already in place.
+
+• Battery life: Sigfox-native devices typically achieve multi-year (often
+  10+ year) battery life where duty cycles follow vendor specifications.
+
+• Return on investment: combined theft reduction, fewer false negatives in
+  monitoring, and potential insurance benefits are modelled to support ROI
+  inside nine months for the reference deployment assumptions (subject to
+  TowerCo validation and local pricing).
+
+• Scale: the same pattern—on-tower microcell plus standard sensors—applies
+  across other TowerCo sites with similar coverage gaps.
+
+--------------------------------------------------------------------------------
+IMPLEMENTATION PREREQUISITES
+--------------------------------------------------------------------------------
+
+• Scheduled tower access for installation and commissioning of the Access
+  Station Micro according to TowerCo climb and RF safety procedures.
+
+• Confirmation of power tap and earthing acceptance.
+
+• Confirmation of backhaul handoff (fiber or microwave) for IP connectivity
+  to the Sigfox backend and customer cloud endpoints.
+
+• Alignment with TowerCo change management and security operations for alarm
+  routing and escalation paths.
+
+--------------------------------------------------------------------------------
+NEXT STEPS
+--------------------------------------------------------------------------------
+
+1. TowerCo to confirm technical window for site survey and installation.
+2. Finalise sensor bill of materials against perimeter and asset priorities.
+3. Execute statement of work covering supply, installation, testing, and
+   handover documentation.
+
+--------------------------------------------------------------------------------
+CONTACT
+--------------------------------------------------------------------------------
+
+Aggressive Intelligence
+Email: info@aggressiveintelligence.example
+Phone: +27 (0) 00 000 0000
+
+================================================================================
+                              END OF NOTE
+================================================================================

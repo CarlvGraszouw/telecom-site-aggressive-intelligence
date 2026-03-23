@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050506" />
+  <title>Lebalelo Site Security Solution | Aggressive Intelligence</title>
+  <meta name="description" content="Securing Lebalelo – IoT perimeter protection with on-site Sigfox base station. Presented to TowerCo." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#050506',
+            blood: '#dc2626',
+            neon: '#22ff66',
+            neonDim: '#16a34a',
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'Consolas', 'monospace'],
+          },
+          boxShadow: {
+            neon: '0 0 32px rgba(34, 255, 102, 0.25), 0 0 64px rgba(34, 255, 102, 0.08)',
+            card: '0 25px 50px -12px rgba(0, 0, 0, 0.65)',
+            red: '0 0 40px rgba(220, 38, 38, 0.35)',
+          },
+          animation: {
+            'fade-up': 'fadeUp 0.8s ease-out forwards',
+            'scan': 'scan 8s linear infinite',
+          },
+          keyframes: {
+            fadeUp: {
+              '0%': { opacity: '0', transform: 'translateY(24px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            scan: {
+              '0%': { transform: 'translateY(-100%)' },
+              '100%': { transform: 'translateY(100%)' },
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    :root {
+      --grid: rgba(34, 255, 102, 0.06);
+      --ring-neon: rgba(34, 255, 102, 0.45);
+    }
+    body {
+      font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+      background:
+        radial-gradient(ellipse 100% 80% at 50% -30%, rgba(220, 38, 38, 0.15), transparent 55%),
+        radial-gradient(ellipse 80% 50% at 100% 50%, rgba(34, 255, 102, 0.04), transparent),
+        linear-gradient(180deg, #030304 0%, #0a0a0c 45%, #050506 100%);
+    }
+    .grid-bg {
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black, transparent);
+    }
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      z-index: 1;
+    }
+    .hero-bg {
+      background-image:
+        linear-gradient(125deg, rgba(3, 3, 4, 0.97) 0%, rgba(10, 10, 14, 0.82) 42%, rgba(5, 5, 8, 0.94) 100%),
+        url("https://picsum.photos/1920/1080?security-tower");
+      background-size: cover;
+      background-position: center;
+    }
+    .hero-scan::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 40%;
+      background: linear-gradient(to bottom, transparent, rgba(34, 255, 102, 0.03), transparent);
+      animation: scan 10s linear infinite;
+      pointer-events: none;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hero-scan::after, .diagram-pulse { animation: none !important; }
+      .animate-fade-up { animation: none !important; opacity: 1 !important; transform: none !important; }
+    }
+    .text-glow-neon {
+      text-shadow: 0 0 40px rgba(34, 255, 102, 0.45), 0 0 80px rgba(34, 255, 102, 0.15);
+    }
+    .border-glow {
+      box-shadow: 0 0 0 1px rgba(34, 255, 102, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+    .card-active {
+      border-color: rgba(34, 255, 102, 0.55) !important;
+      box-shadow: 0 0 0 1px rgba(34, 255, 102, 0.2), 0 20px 40px -15px rgba(34, 255, 102, 0.12);
+      background: linear-gradient(155deg, rgba(34, 255, 102, 0.09), rgba(12, 12, 16, 0.95));
+    }
+    .diagram-pulse {
+      animation: pulseLine 2.2s ease-in-out infinite;
+    }
+    @keyframes pulseLine {
+      0%, 100% { opacity: 0.4; stroke-width: 2; }
+      50% { opacity: 1; stroke-width: 3; }
+    }
+    .focus-ring:focus-visible {
+      outline: 2px solid var(--ring-neon);
+      outline-offset: 3px;
+    }
+    .ramac {
+      color: #dc2626;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .logo-ai {
+      filter: drop-shadow(0 0 8px rgba(34, 255, 102, 0.35));
+    }
+    @media print {
+      .no-print, nav, #mobile-menu, .noise { display: none !important; }
+      body { background: #fff !important; color: #111 !important; }
+      .hero-bg { background: #f4f4f5 !important; min-height: auto !important; }
+      section { break-inside: avoid; }
+      a { color: inherit !important; text-decoration: underline; }
+    }
+  </style>
+</head>
+<body class="text-zinc-200 antialiased min-h-screen relative z-0">
+  <div class="noise" aria-hidden="true"></div>
+  <div class="fixed inset-0 grid-bg pointer-events-none z-0" aria-hidden="true"></div>
+
+  <header class="fixed top-0 inset-x-0 z-50 border-b border-zinc-800/90 bg-[#050506]/85 backdrop-blur-xl supports-[backdrop-filter]:bg-[#050506]/70">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 md:h-[4.25rem] gap-3">
+        <nav class="hidden lg:flex items-center flex-wrap gap-x-3 gap-y-1 text-sm text-zinc-400 min-w-0" aria-label="Presentation">
+          <a href="#top" class="flex items-center gap-2.5 shrink-0 focus-ring rounded group">
+            <svg class="logo-ai h-9 w-9 shrink-0" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M24 2L44 12v24L24 46 4 36V12L24 2z" stroke="#22ff66" stroke-width="2" fill="#0a0a0c"/>
+              <path d="M24 8l14 7v18l-14 7-14-7V15l14-7z" stroke="#dc2626" stroke-width="1.2" fill="none" opacity="0.9"/>
+              <text x="24" y="30" text-anchor="middle" fill="#22ff66" font-size="15" font-weight="800" font-family="system-ui,sans-serif">AI</text>
+            </svg>
+            <span class="text-neon font-bold tracking-tight group-hover:text-glow-neon transition-all">Aggressive Intelligence</span>
+          </a>
+          <span class="text-zinc-600 select-none" aria-hidden="true">|</span>
+          <span class="text-zinc-100 font-semibold shrink-0">Lebalelo Site Security Solution</span>
+          <span class="text-zinc-600 select-none" aria-hidden="true">|</span>
+          <span class="text-red-500/95 shrink-0 font-medium">Presented to TowerCo</span>
+        </nav>
+        <a href="#top" class="lg:hidden flex items-center gap-2 text-neon font-bold tracking-tight text-sm sm:text-base hover:text-glow-neon transition-all focus-ring rounded">
+          <svg class="logo-ai h-8 w-8 shrink-0" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M24 2L44 12v24L24 46 4 36V12L24 2z" stroke="#22ff66" stroke-width="2" fill="#0a0a0c"/>
+            <path d="M24 8l14 7v18l-14 7-14-7V15l14-7z" stroke="#dc2626" stroke-width="1.2" fill="none" opacity="0.9"/>
+            <text x="24" y="30" text-anchor="middle" fill="#22ff66" font-size="15" font-weight="800" font-family="system-ui,sans-serif">AI</text>
+          </svg>
+          <span class="truncate">Aggressive Intelligence</span>
+        </a>
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button type="button" onclick="window.print()" class="no-print hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-zinc-700/90 text-xs font-semibold text-zinc-300 hover:border-neon/50 hover:text-neon hover:bg-neon/5 transition-all focus-ring">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            Print Proposal
+          </button>
+          <button type="button" id="menu-toggle" class="lg:hidden p-2.5 rounded-xl border border-zinc-700 text-zinc-300 hover:border-red-500/50 hover:text-white transition-colors focus-ring" aria-expanded="false" aria-controls="mobile-menu">
+            <span class="sr-only">Open menu</span>
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="mobile-menu" class="lg:hidden hidden border-t border-zinc-800 py-4 space-y-3 text-sm">
+        <p class="text-neon font-bold px-1">Aggressive Intelligence</p>
+        <p class="text-zinc-100 font-semibold px-1">Lebalelo Site Security Solution</p>
+        <p class="text-red-500 font-medium px-1">Presented to TowerCo</p>
+        <nav class="flex flex-col gap-1 pt-2 border-t border-zinc-800/80" aria-label="Page sections">
+          <a href="#problem" class="nav-jump px-1 py-2 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-white">Critical coverage gap</a>
+          <a href="#solution" class="nav-jump px-1 py-2 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-white">Our solution</a>
+          <a href="#products" class="nav-jump px-1 py-2 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-white">Products &amp; sensors</a>
+          <a href="#benefits" class="nav-jump px-1 py-2 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-white">Benefits</a>
+          <a href="#contact" class="nav-jump px-1 py-2 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-white">Contact</a>
+        </nav>
+        <button type="button" onclick="window.print()" class="w-full mt-2 py-2.5 rounded-xl border border-zinc-700 text-zinc-300 sm:hidden font-semibold">Print Proposal</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top" class="relative z-10 pt-16 md:pt-[4.25rem]">
+    <section class="hero-bg hero-scan relative min-h-[90vh] flex items-center border-b border-zinc-800/60 overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/20 to-transparent pointer-events-none"></div>
+      <div class="absolute top-24 right-8 w-72 h-72 bg-neon/5 rounded-full blur-[100px] pointer-events-none"></div>
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 w-full">
+        <div class="max-w-4xl opacity-0 animate-fade-up" style="animation-delay: 0.1s;">
+          <div class="flex items-center gap-3 mb-6">
+            <svg class="logo-ai h-14 w-14 sm:h-16 sm:w-16 shrink-0" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M24 2L44 12v24L24 46 4 36V12L24 2z" stroke="#22ff66" stroke-width="2" fill="#0a0a0c"/>
+              <path d="M24 8l14 7v18l-14 7-14-7V15l14-7z" stroke="#dc2626" stroke-width="1.2" fill="none" opacity="0.9"/>
+              <text x="24" y="30" text-anchor="middle" fill="#22ff66" font-size="15" font-weight="800" font-family="system-ui,sans-serif">AI</text>
+            </svg>
+            <div>
+              <p class="text-neon font-bold text-lg tracking-tight">Aggressive Intelligence</p>
+              <p class="text-zinc-500 text-xs font-mono uppercase tracking-widest">Security · IoT · Intelligence</p>
+            </div>
+          </div>
+          <p class="text-neon/95 text-xs sm:text-sm font-mono tracking-[0.25em] uppercase mb-5">TowerCo · Lebalelo</p>
+          <h1 class="text-[1.65rem] sm:text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold text-white leading-[1.12] mb-6 tracking-tight">
+            Securing Lebalelo – <span class="text-neon text-glow-neon">Complete IoT Perimeter Protection</span> Powered by On-Site Sigfox Base Station
+          </h1>
+          <p class="text-lg sm:text-xl text-zinc-400 mb-11 max-w-2xl font-medium">From Aggressive Intelligence to TowerCo</p>
+          <div class="flex flex-wrap gap-4">
+            <button type="button" id="btn-download-proposal" class="inline-flex items-center justify-center gap-2 px-9 py-4 rounded-2xl bg-gradient-to-r from-red-600 via-blood to-red-700 text-white font-bold shadow-red hover:shadow-neon hover:brightness-110 transition-all duration-300 hover:-translate-y-0.5 focus-ring">
+              Download Full Proposal
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            </button>
+            <button type="button" id="btn-open-note" class="inline-flex items-center justify-center px-9 py-4 rounded-2xl border border-neon/45 text-neon font-bold bg-neon/5 hover:bg-neon/10 hover:border-neon transition-all focus-ring">
+              Read Adapted Note
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="problem" class="py-24 md:py-32 border-b border-zinc-800/50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl md:text-5xl font-extrabold text-white mb-3 tracking-tight">Critical Coverage Gap at Lebalelo</h2>
+        <p class="text-zinc-500 text-lg max-w-2xl mb-14">Network reality on the ground — not on a marketing coverage map.</p>
+        <div class="relative rounded-3xl overflow-hidden border border-red-500/25 shadow-card mb-12 aspect-[2/1] max-h-[460px] group">
+          <img src="https://picsum.photos/1200/600?sigfox-map-low-signal" alt="Sigfox coverage map placeholder" class="w-full h-full object-cover transition duration-700 group-hover:scale-[1.02]" width="1200" height="600" loading="lazy" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/40"></div>
+          <div class="absolute inset-0 flex items-center justify-center px-4">
+            <span class="text-2xl sm:text-4xl md:text-6xl font-black text-red-600 drop-shadow-[0_0_40px_rgba(220,38,38,0.9)] tracking-tight text-center uppercase">LOW SIGNAL – RED ZONE</span>
+          </div>
+        </div>
+        <p class="text-lg md:text-xl text-zinc-300 leading-relaxed max-w-3xl font-medium">
+          Current Sigfox network shows critically low signal strength across the entire Lebalelo site. Existing <span class="ramac">RAMAC™</span> <strong class="text-white font-semibold">G-Matrix</strong> sensors for fence protection and asset monitoring are unreliable.
+        </p>
+      </div>
+    </section>
+
+    <section id="solution" class="py-24 md:py-32 border-b border-zinc-800/50 bg-zinc-950/35">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl md:text-5xl font-extrabold text-white mb-14 tracking-tight">Our Turnkey Solution</h2>
+        <ul class="grid sm:grid-cols-2 gap-5 mb-20">
+          <li class="flex gap-5 p-6 rounded-2xl border border-zinc-800/90 bg-zinc-900/40 hover:border-neon/35 hover:bg-zinc-900/70 transition-all duration-300">
+            <span class="flex-shrink-0 w-14 h-14 rounded-2xl bg-red-500/15 flex items-center justify-center text-neon ring-1 ring-red-500/20">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            </span>
+            <span class="text-zinc-300 leading-relaxed pt-1">Install <strong class="text-white">Sigfox Access Station Micro</strong> directly on the Lebalelo tower (zero additional power cost – uses site backhaul)</span>
+          </li>
+          <li class="flex gap-5 p-6 rounded-2xl border border-zinc-800/90 bg-zinc-900/40 hover:border-neon/35 hover:bg-zinc-900/70 transition-all duration-300">
+            <span class="flex-shrink-0 w-14 h-14 rounded-2xl bg-red-500/15 flex items-center justify-center text-neon ring-1 ring-red-500/20">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/></svg>
+            </span>
+            <span class="text-zinc-300 leading-relaxed pt-1">Full <strong class="text-white">local Sigfox coverage</strong> for the entire site</span>
+          </li>
+          <li class="flex gap-5 p-6 rounded-2xl border border-zinc-800/90 bg-zinc-900/40 hover:border-neon/35 hover:bg-zinc-900/70 transition-all duration-300">
+            <span class="flex-shrink-0 w-14 h-14 rounded-2xl bg-red-500/15 flex items-center justify-center text-neon ring-1 ring-red-500/20">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </span>
+            <span class="text-zinc-300 leading-relaxed pt-1">All <span class="ramac">RAMAC™</span> <strong class="text-white">G-Matrix</strong> sensors route through the tower's <strong class="text-white">existing fiber/microwave backhaul</strong> to the cloud</span>
+          </li>
+          <li class="flex gap-5 p-6 rounded-2xl border border-zinc-800/90 bg-zinc-900/40 hover:border-neon/35 hover:bg-zinc-900/70 transition-all duration-300">
+            <span class="flex-shrink-0 w-14 h-14 rounded-2xl bg-red-500/15 flex items-center justify-center text-neon ring-1 ring-red-500/20">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </span>
+            <span class="text-zinc-300 leading-relaxed pt-1"><strong class="text-white">Immediate activation</strong> – no new infrastructure needed</span>
+          </li>
+        </ul>
+
+        <h3 class="text-xl font-bold text-neon mb-8 font-mono tracking-wide uppercase text-sm">Architecture Flow</h3>
+        <div class="rounded-3xl border border-zinc-800/90 bg-gradient-to-br from-zinc-900/50 to-zinc-950/80 p-8 md:p-12 overflow-x-auto border-glow shadow-card">
+          <svg viewBox="0 0 920 240" class="w-full min-w-[680px] h-auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="diagram-title">
+            <title id="diagram-title">Tower to cloud data flow</title>
+            <defs>
+              <linearGradient id="wire" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#22ff66;stop-opacity:0.15" />
+                <stop offset="50%" style="stop-color:#22ff66;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#22ff66;stop-opacity:0.15" />
+              </linearGradient>
+              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2" result="b" />
+                <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+            </defs>
+            <rect x="24" y="48" width="148" height="144" rx="16" fill="#0c0c0f" stroke="#dc2626" stroke-width="2" />
+            <text x="98" y="102" text-anchor="middle" fill="#fafafa" font-size="15" font-weight="800" font-family="system-ui">Tower</text>
+            <text x="98" y="128" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui">Lebalelo site</text>
+            <line x1="172" y1="120" x2="248" y2="120" stroke="url(#wire)" stroke-width="4" class="diagram-pulse" stroke-linecap="round" />
+            <polygon points="248,120 238,114 238,126" fill="#22ff66" opacity="0.9" />
+            <rect x="248" y="40" width="168" height="160" rx="16" fill="#0c0c0f" stroke="#22ff66" stroke-width="2" filter="url(#glow)" />
+            <text x="332" y="92" text-anchor="middle" fill="#22ff66" font-size="14" font-weight="800" font-family="system-ui">Sigfox Base</text>
+            <text x="332" y="112" text-anchor="middle" fill="#22ff66" font-size="14" font-weight="800" font-family="system-ui">Station</text>
+            <text x="332" y="142" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui">Access Station Micro</text>
+            <line x1="416" y1="120" x2="492" y2="120" stroke="url(#wire)" stroke-width="4" class="diagram-pulse" stroke-linecap="round" />
+            <polygon points="492,120 482,114 482,126" fill="#22ff66" opacity="0.9" />
+            <rect x="492" y="28" width="210" height="184" rx="16" fill="#0c0c0f" stroke="#52525b" stroke-width="2" />
+            <text x="597" y="52" text-anchor="middle" fill="#fafafa" font-size="13" font-weight="800" font-family="system-ui">Sensors</text>
+            <text x="597" y="68" text-anchor="middle" fill="#dc2626" font-size="9.5" font-weight="800" font-family="system-ui">RAMAC™ G-Matrix</text>
+            <text x="597" y="88" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="system-ui">Fence Vibration</text>
+            <text x="597" y="104" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="system-ui">Perimeter</text>
+            <text x="597" y="120" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="system-ui">Asset Trackers</text>
+            <line x1="702" y1="120" x2="778" y2="120" stroke="url(#wire)" stroke-width="4" class="diagram-pulse" stroke-linecap="round" />
+            <polygon points="778,120 768,114 768,126" fill="#22ff66" opacity="0.9" />
+            <rect x="778" y="48" width="124" height="144" rx="16" fill="#0c0c0f" stroke="#3b82f6" stroke-width="2" />
+            <text x="840" y="104" text-anchor="middle" fill="#93c5fd" font-size="14" font-weight="800" font-family="system-ui">Cloud</text>
+            <text x="840" y="128" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui">Dashboard</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section id="products" class="py-24 md:py-32 border-b border-zinc-800/50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">Products &amp; Sensors</h2>
+        <p class="text-zinc-500 text-lg mb-12 max-w-xl">Select a category — details appear below.</p>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12" id="product-tabs" role="tablist" aria-label="Product categories">
+          <button type="button" role="tab" aria-selected="true" data-tab="fence" class="product-tab text-left p-6 rounded-2xl border border-zinc-800 bg-zinc-900/50 hover:border-neon/40 transition-all duration-300 card-active focus-ring">
+            <span class="text-neon text-xs font-mono font-bold uppercase tracking-widest">01</span>
+            <h3 class="text-white font-bold mt-3 text-lg">Perimeter Fence Protection</h3>
+            <p class="text-zinc-500 text-sm mt-1"><span class="ramac">RAMAC™</span> G-Matrix · Vibration &amp; cut</p>
+          </button>
+          <button type="button" role="tab" aria-selected="false" data-tab="intrusion" class="product-tab text-left p-6 rounded-2xl border border-zinc-800 bg-zinc-900/50 hover:border-neon/40 transition-all duration-300 focus-ring">
+            <span class="text-neon text-xs font-mono font-bold uppercase tracking-widest">02</span>
+            <h3 class="text-white font-bold mt-3 text-lg">Intrusion Detection</h3>
+            <p class="text-zinc-500 text-sm mt-1"><span class="ramac">RAMAC™</span> G-Matrix · Motion + thermal</p>
+          </button>
+          <button type="button" role="tab" aria-selected="false" data-tab="asset" class="product-tab text-left p-6 rounded-2xl border border-zinc-800 bg-zinc-900/50 hover:border-neon/40 transition-all duration-300 focus-ring">
+            <span class="text-neon text-xs font-mono font-bold uppercase tracking-widest">03</span>
+            <h3 class="text-white font-bold mt-3 text-lg">Asset &amp; Equipment Tracking</h3>
+            <p class="text-zinc-500 text-sm mt-1"><span class="ramac">RAMAC™</span> G-Matrix · High-value inventory</p>
+          </button>
+          <button type="button" role="tab" aria-selected="false" data-tab="env" class="product-tab text-left p-6 rounded-2xl border border-zinc-800 bg-zinc-900/50 hover:border-neon/40 transition-all duration-300 focus-ring">
+            <span class="text-neon text-xs font-mono font-bold uppercase tracking-widest">04</span>
+            <h3 class="text-white font-bold mt-3 text-lg">Environmental Monitoring</h3>
+            <p class="text-zinc-500 text-sm mt-1"><span class="ramac">RAMAC™</span> G-Matrix · Temp / flood / fire</p>
+          </button>
+          <button type="button" role="tab" aria-selected="false" data-tab="cctv" class="product-tab text-left p-6 rounded-2xl border border-zinc-800 bg-zinc-900/50 hover:border-neon/40 transition-all duration-300 focus-ring">
+            <span class="text-neon text-xs font-mono font-bold uppercase tracking-widest">05</span>
+            <h3 class="text-white font-bold mt-3 text-lg">Integrated CCTV Triggering</h3>
+            <p class="text-zinc-500 text-sm mt-1"><span class="ramac">RAMAC™</span> G-Matrix · Event-driven</p>
+          </button>
+          <button type="button" role="tab" aria-selected="false" data-tab="folder" class="product-tab text-left p-6 rounded-2xl border border-zinc-800 bg-zinc-900/50 hover:border-neon/40 transition-all duration-300 focus-ring">
+            <span class="text-neon text-xs font-mono font-bold uppercase tracking-widest">06</span>
+            <h3 class="text-white font-bold mt-3 text-lg">Already in your folder</h3>
+            <p class="text-zinc-500 text-sm mt-1"><span class="ramac">RAMAC™</span> G-Matrix · Sigfox-native · 10+ yr battery</p>
+          </button>
+        </div>
+        <div id="product-panel" role="tabpanel" class="rounded-3xl border border-zinc-800/90 bg-zinc-900/40 p-10 md:p-12 min-h-[200px] border-glow">
+          <h4 id="panel-title" class="text-2xl md:text-3xl font-extrabold text-white mb-5">Perimeter Fence Protection</h4>
+          <div id="panel-body" class="text-zinc-400 text-lg leading-relaxed">Fence-mounted <span class="ramac">RAMAC™</span> <strong class="text-zinc-200">G-Matrix</strong> accelerometers and line sensors detect climb, cut, and breach attempts. Alarms are raised over the local Sigfox cell with minimal latency for control-room correlation.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="benefits" class="py-24 md:py-32 border-b border-zinc-800/50 bg-zinc-950/40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl md:text-5xl font-extrabold text-white mb-14 tracking-tight">Benefits</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div class="p-8 rounded-2xl border border-zinc-800/90 bg-zinc-900/30 hover:border-red-500/35 hover:bg-zinc-900/50 transition-all duration-300">
+            <div class="text-red-500 text-2xl mb-4 font-mono">◆</div>
+            <p class="text-xl text-zinc-100 font-bold">100% site coverage</p>
+          </div>
+          <div class="p-8 rounded-2xl border border-zinc-800/90 bg-zinc-900/30 hover:border-red-500/35 hover:bg-zinc-900/50 transition-all duration-300">
+            <div class="text-red-500 text-2xl mb-4 font-mono">◆</div>
+            <p class="text-xl text-zinc-100 font-bold">Zero additional OPEX for connectivity</p>
+          </div>
+          <div class="p-8 rounded-2xl border border-zinc-800/90 bg-zinc-900/30 hover:border-red-500/35 hover:bg-zinc-900/50 transition-all duration-300">
+            <div class="text-red-500 text-2xl mb-4 font-mono">◆</div>
+            <p class="text-xl text-zinc-100 font-bold">Real-time alerts to control room / mobile app</p>
+          </div>
+          <div class="p-8 rounded-2xl border border-zinc-800/90 bg-zinc-900/30 hover:border-red-500/35 hover:bg-zinc-900/50 transition-all duration-300">
+            <div class="text-red-500 text-2xl mb-4 font-mono">◆</div>
+            <p class="text-xl text-zinc-100 font-bold">ROI in &lt; 9 months (theft reduction + insurance savings)</p>
+          </div>
+          <div class="p-8 rounded-2xl border border-zinc-800/90 bg-zinc-900/30 hover:border-red-500/35 hover:bg-zinc-900/50 transition-all duration-300 md:col-span-2 lg:col-span-1">
+            <div class="text-red-500 text-2xl mb-4 font-mono">◆</div>
+            <p class="text-xl text-zinc-100 font-bold">Scalable to all TowerCo sites</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-20 md:py-24 border-b border-zinc-800/50">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+        <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-4">Adapted Proposal Note</h2>
+        <p class="text-zinc-500 mb-10 text-lg">Full supporting text (Notepad-style) from our rebranded TowerCo / Lebalelo proposal.</p>
+        <button type="button" id="btn-open-note-2" class="inline-flex items-center justify-center px-12 py-4 rounded-2xl bg-zinc-800 border border-zinc-600 text-white font-bold hover:border-neon hover:text-neon hover:bg-zinc-800/80 transition-all focus-ring">
+          Open Full Proposal Text
+        </button>
+      </div>
+    </section>
+
+    <section id="contact" class="py-24 md:py-32">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="rounded-[2rem] border border-red-500/20 bg-gradient-to-br from-zinc-900/95 via-zinc-950 to-obsidian p-10 md:p-16 border-glow shadow-card">
+          <h2 class="text-2xl md:text-4xl font-extrabold text-white mb-4 tracking-tight">Next Step: Schedule tower access for base-station installation</h2>
+          <p class="text-zinc-400 text-lg mb-12 max-w-2xl">Share your details and we will coordinate a site window with TowerCo operations.</p>
+          <form class="grid sm:grid-cols-2 gap-7 mb-14" id="contact-form" novalidate>
+            <div>
+              <label for="name" class="block text-sm font-semibold text-zinc-500 mb-2">Name</label>
+              <input id="name" name="name" type="text" required autocomplete="name" class="w-full px-5 py-3.5 rounded-2xl bg-zinc-950 border border-zinc-700 text-white placeholder-zinc-600 focus:border-neon focus:ring-2 focus:ring-neon/30 outline-none transition-colors focus-ring" placeholder="Your name" />
+            </div>
+            <div>
+              <label for="email" class="block text-sm font-semibold text-zinc-500 mb-2">Email</label>
+              <input id="email" name="email" type="email" required autocomplete="email" class="w-full px-5 py-3.5 rounded-2xl bg-zinc-950 border border-zinc-700 text-white placeholder-zinc-600 focus:border-neon focus:ring-2 focus:ring-neon/30 outline-none transition-colors focus-ring" placeholder="you@towerco.com" />
+            </div>
+            <div class="sm:col-span-2">
+              <label for="phone" class="block text-sm font-semibold text-zinc-500 mb-2">Phone</label>
+              <input id="phone" name="phone" type="tel" autocomplete="tel" class="w-full px-5 py-3.5 rounded-2xl bg-zinc-950 border border-zinc-700 text-white placeholder-zinc-600 focus:border-neon focus:ring-2 focus:ring-neon/30 outline-none transition-colors focus-ring" placeholder="+27 …" />
+            </div>
+            <div class="sm:col-span-2">
+              <button type="submit" class="inline-flex items-center justify-center px-10 py-4 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-bold transition-colors focus-ring">Request scheduling</button>
+            </div>
+          </form>
+          <div class="border-t border-zinc-800 pt-12 flex flex-col sm:flex-row sm:items-center gap-4">
+            <svg class="logo-ai h-12 w-12 shrink-0" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M24 2L44 12v24L24 46 4 36V12L24 2z" stroke="#22ff66" stroke-width="2" fill="#0a0a0c"/>
+              <path d="M24 8l14 7v18l-14 7-14-7V15l14-7z" stroke="#dc2626" stroke-width="1.2" fill="none" opacity="0.9"/>
+              <text x="24" y="30" text-anchor="middle" fill="#22ff66" font-size="15" font-weight="800" font-family="system-ui,sans-serif">AI</text>
+            </svg>
+            <div>
+            <p class="text-neon font-bold text-lg mb-3">Aggressive Intelligence</p>
+            <p class="text-zinc-400">Email: <a href="mailto:info@aggressiveintelligence.example" class="text-neon hover:underline font-medium focus-ring rounded">info@aggressiveintelligence.example</a></p>
+            <p class="text-zinc-400 mt-1">Phone: +27 (0) 00 000 0000</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="relative z-10 border-t border-zinc-800 py-12 bg-[#030304]/90">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-sm text-zinc-500">
+      <p class="print-hide flex items-center gap-2">
+        <svg class="logo-ai h-7 w-7 shrink-0 opacity-90" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M24 2L44 12v24L24 46 4 36V12L24 2z" stroke="#22ff66" stroke-width="2" fill="#0a0a0c"/><text x="24" y="30" text-anchor="middle" fill="#22ff66" font-size="15" font-weight="800" font-family="system-ui,sans-serif">AI</text></svg>
+        &copy; <span id="year"></span> Aggressive Intelligence. All rights reserved.
+      </p>
+      <button type="button" onclick="window.print()" class="no-print text-zinc-500 hover:text-neon text-sm font-semibold focus-ring rounded px-2 py-1">Print Proposal</button>
+    </div>
+  </footer>
+
+  <div id="proposal-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="closeProposalModal()"></div>
+    <div class="absolute inset-4 md:inset-10 lg:inset-x-auto lg:left-1/2 lg:-translate-x-1/2 lg:w-full lg:max-w-3xl lg:max-h-[88vh] flex flex-col rounded-2xl border border-zinc-700 bg-[#141414] shadow-2xl overflow-hidden ring-1 ring-white/5" onclick="event.stopPropagation()" role="document">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-800 bg-zinc-900/90">
+        <span id="modal-title" class="text-zinc-300 text-sm font-mono truncate pr-4">lebalelo_proposal_note.txt — Notepad</span>
+        <button type="button" onclick="closeProposalModal()" class="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors focus-ring" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="flex-1 overflow-auto p-5 md:p-8">
+        <pre id="proposal-modal-body" class="font-mono text-[13px] md:text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed select-text">Loading…</pre>
+      </div>
+    </div>
+  </div>
+
+
+  <textarea id="proposal-embedded" class="hidden" aria-hidden="true" readonly>================================================================================
+                    LEBALELO SITE SECURITY SOLUTION
+                         PROPOSAL SUMMARY NOTE
+================================================================================
+
+Prepared by: Aggressive Intelligence
+Presented to: TowerCo
+Site: Lebalelo
+Date: March 2025
+Classification: Commercial – Proposal
+
+--------------------------------------------------------------------------------
+PURPOSE
+--------------------------------------------------------------------------------
+
+This note accompanies the browser-based presentation titled "Securing Lebalelo –
+Complete IoT Perimeter Protection Powered by On-Site Sigfox Base Station." It
+captures the commercial and technical rationale for deploying a Sigfox Access
+Station Micro on the existing tower structure, together with Sigfox-native
+sensors and cloud integration, to close a critical RF coverage gap and restore
+reliable fence, perimeter, and asset monitoring.
+
+--------------------------------------------------------------------------------
+EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+
+TowerCo operates high-value infrastructure at Lebalelo where physical security
+and asset protection depend on dependable IoT connectivity. Current Sigfox
+network coverage at the site is insufficient: sensors experience low signal
+strength across the property, leading to missed alarms, delayed notifications,
+and reduced confidence in automated monitoring.
+
+Aggressive Intelligence proposes a turnkey solution: install a Sigfox Access
+Station Micro directly on the Lebalelo tower, powered from existing site
+electrical and backhaul infrastructure. This delivers full local Sigfox
+coverage without new civil works, with sensor traffic carried over the tower's
+existing fiber or microwave link to the cloud. The result is immediate,
+predictable connectivity for vibration, perimeter, environmental, and asset
+tracking devices already aligned with Sigfox technology.
+
+--------------------------------------------------------------------------------
+PROBLEM STATEMENT
+--------------------------------------------------------------------------------
+
+• Macro cellular and public LPWAN maps do not guarantee in-building or
+  perimeter-grade service at every point on a fenced compound.
+
+• Fence-line and ground-level sensors are often in RF shadow relative to
+  distant base stations.
+
+• Without reliable uplink, security workflows break: correlation with CCTV,
+  control-room dashboards, and mobile alerting becomes inconsistent.
+
+• Insurance and operational risk increase when electronic monitoring cannot
+  be demonstrated as continuous and auditable.
+
+--------------------------------------------------------------------------------
+PROPOSED ARCHITECTURE
+--------------------------------------------------------------------------------
+
+1. Tower-mounted Sigfox Access Station Micro
+   – Co-located with existing power and grounding practices.
+   – Uses site backhaul; no incremental recurring connectivity charge beyond
+     current tower service model.
+
+2. Local Sigfox coverage
+   – Optimised for the full Lebalelo footprint, including fence lines and
+     asset storage zones.
+
+3. Sensor ecosystem
+   – Perimeter: vibration and cut-detection on fence structures.
+   – Intrusion: motion and thermal where required by site layout.
+   – Assets: equipment and high-value movable asset trackers.
+   – Environment: temperature, flood, and fire signalling as needed.
+   – CCTV: event-driven triggering where integrated with the security stack.
+
+4. Cloud and operations
+   – Alarm delivery to control room systems and mobile applications.
+   – Dashboards for health, battery status, and exception reporting.
+
+--------------------------------------------------------------------------------
+COMMERCIAL HIGHLIGHTS
+--------------------------------------------------------------------------------
+
+• Target outcome: 100% site coverage for defined sensor classes under the new
+  local cell.
+
+• Operating expenditure: no additional OPEX line item for wide-area IoT
+  connectivity beyond existing tower utilities and backhaul already in place.
+
+• Battery life: Sigfox-native devices typically achieve multi-year (often
+  10+ year) battery life where duty cycles follow vendor specifications.
+
+• Return on investment: combined theft reduction, fewer false negatives in
+  monitoring, and potential insurance benefits are modelled to support ROI
+  inside nine months for the reference deployment assumptions (subject to
+  TowerCo validation and local pricing).
+
+• Scale: the same pattern—on-tower microcell plus standard sensors—applies
+  across other TowerCo sites with similar coverage gaps.
+
+--------------------------------------------------------------------------------
+IMPLEMENTATION PREREQUISITES
+--------------------------------------------------------------------------------
+
+• Scheduled tower access for installation and commissioning of the Access
+  Station Micro according to TowerCo climb and RF safety procedures.
+
+• Confirmation of power tap and earthing acceptance.
+
+• Confirmation of backhaul handoff (fiber or microwave) for IP connectivity
+  to the Sigfox backend and customer cloud endpoints.
+
+• Alignment with TowerCo change management and security operations for alarm
+  routing and escalation paths.
+
+--------------------------------------------------------------------------------
+NEXT STEPS
+--------------------------------------------------------------------------------
+
+1. TowerCo to confirm technical window for site survey and installation.
+2. Finalise sensor bill of materials against perimeter and asset priorities.
+3. Execute statement of work covering supply, installation, testing, and
+   handover documentation.
+
+--------------------------------------------------------------------------------
+CONTACT
+--------------------------------------------------------------------------------
+
+Aggressive Intelligence
+Email: info@aggressiveintelligence.example
+Phone: +27 (0) 00 000 0000
+
+================================================================================
+                              END OF NOTE
+================================================================================
+</textarea>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    function getEmbeddedProposal() {
+      var el = document.getElementById('proposal-embedded');
+      return el ? el.value : '';
+    }
+
+    function loadProposalText() {
+      return fetch('lebalelo_proposal_note.txt')
+        .then(function (r) {
+          if (!r.ok) throw new Error('fetch failed');
+          return r.text();
+        })
+        .catch(function () {
+          return getEmbeddedProposal();
+        });
+    }
+
+    function downloadProposal(ev) {
+      if (ev) ev.preventDefault();
+      loadProposalText().then(function (t) {
+        var blob = new Blob([t], { type: 'text/plain;charset=utf-8' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'lebalelo_proposal_note.txt';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(a.href);
+      });
+    }
+
+    var btnDl = document.getElementById('btn-download-proposal');
+    if (btnDl) btnDl.addEventListener('click', downloadProposal);
+
+    document.getElementById('btn-open-note').addEventListener('click', openProposalModal);
+    document.getElementById('btn-open-note-2').addEventListener('click', openProposalModal);
+
+    var menuToggle = document.getElementById('menu-toggle');
+    var mobileMenu = document.getElementById('mobile-menu');
+    menuToggle.addEventListener('click', function () {
+      mobileMenu.classList.toggle('hidden');
+      menuToggle.setAttribute('aria-expanded', String(!mobileMenu.classList.contains('hidden')));
+    });
+
+    document.querySelectorAll('.nav-jump').forEach(function (link) {
+      link.addEventListener('click', function () {
+        mobileMenu.classList.add('hidden');
+        menuToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    document.getElementById('contact-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = document.getElementById('name').value.trim();
+      var email = document.getElementById('email').value.trim();
+      var phone = document.getElementById('phone').value.trim();
+      if (!name || !email) {
+        alert('Please enter your name and email.');
+        return;
+      }
+      var body =
+        'Name: ' +
+        name +
+        '\nEmail: ' +
+        email +
+        '\nPhone: ' +
+        phone +
+        '\n\n— Request: schedule tower access for Lebalelo base-station installation';
+      var subject = encodeURIComponent('Lebalelo — Tower access / base-station scheduling');
+      var mailto =
+        'mailto:info@aggressiveintelligence.example?subject=' + subject + '&body=' + encodeURIComponent(body);
+      window.location.href = mailto;
+    });
+
+    var R = '<span class="ramac">RAMAC™</span>';
+    var G = '<strong class="text-zinc-200">G-Matrix</strong>';
+
+    var productCopy = {
+      fence: {
+        title: 'Perimeter Fence Protection',
+        html:
+          '<p>Fence-mounted ' +
+          R +
+          ' ' +
+          G +
+          ' accelerometers and line sensors detect climb, cut, and breach attempts. Alarms are raised over the local Sigfox cell with minimal latency for control-room correlation.</p>',
+      },
+      intrusion: {
+        title: 'Intrusion Detection',
+        html:
+          '<p>' +
+          R +
+          ' ' +
+          G +
+          ' PIR, dual-tech, and thermal profiles where the site layout demands it — all on ultra-low-power Sigfox uplinks. Reduces nuisance alarms when paired with perimeter context.</p>',
+      },
+      asset: {
+        title: 'Asset & Equipment Tracking',
+        html:
+          '<p>Track generators, cabinets, and high-value spares with ' +
+          R +
+          ' ' +
+          G +
+          ' long-life asset tags. Geofence and movement rules feed the same cloud dashboard as security events.</p>',
+      },
+      env: {
+        title: 'Environmental Monitoring',
+        html:
+          '<p>' +
+          R +
+          ' ' +
+          G +
+          ' sensors for temperature rise, water ingress, and fire signalling integrate with operations — early warning before equipment loss or compound escalation.</p>',
+      },
+      cctv: {
+        title: 'Integrated CCTV Triggering',
+        html:
+          '<p>' +
+          R +
+          ' ' +
+          G +
+          ' IoT events can cue recorder bookmarking, PTZ presets, or VMS workflows where the security stack supports integration — fewer missed incidents.</p>',
+      },
+      folder: {
+        title: 'Already in your folder',
+        html:
+          '<p>All ' +
+          R +
+          ' ' +
+          G +
+          ' products referenced are Sigfox-native with 10+ year battery life under typical duty cycles. TowerCo can standardise SKUs already qualified in your procurement catalogue.</p>',
+      },
+    };
+
+    document.querySelectorAll('.product-tab').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-tab');
+        document.querySelectorAll('.product-tab').forEach(function (b) {
+          b.classList.remove('card-active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        btn.classList.add('card-active');
+        btn.setAttribute('aria-selected', 'true');
+        var data = productCopy[id];
+        document.getElementById('panel-title').textContent = data.title;
+        document.getElementById('panel-body').innerHTML = data.html;
+      });
+    });
+
+    function openProposalModal() {
+      var modal = document.getElementById('proposal-modal');
+      var pre = document.getElementById('proposal-modal-body');
+      modal.classList.remove('hidden');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      pre.textContent = 'Loading…';
+      loadProposalText().then(function (t) {
+        pre.textContent = t;
+      });
+    }
+
+    function closeProposalModal() {
+      var modal = document.getElementById('proposal-modal');
+      modal.classList.add('hidden');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeProposalModal();
+    });
+  </script>
+</body>
+</html>
