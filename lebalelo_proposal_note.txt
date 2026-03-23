@@ -26,9 +26,11 @@ EXECUTIVE SUMMARY
 
 TowerCo operates high-value infrastructure at Lebalelo where physical security
 and asset protection depend on dependable IoT connectivity. Current Sigfox
-network coverage at the site is insufficient: sensors experience low signal
-strength across the property, leading to missed alarms, delayed notifications,
-and reduced confidence in automated monitoring.
+network coverage at the site is insufficient: weak RF at the compound means
+RAMAC™ G-Matrix and other field devices cannot consistently complete uplinks,
+leading to missed alarms, delayed notifications, and reduced confidence in
+automated monitoring. The constraint is coverage and link margin — not the
+sensor hardware specification.
 
 Aggressive Intelligence proposes a turnkey solution: install a Sigfox Access
 Station Micro directly on the Lebalelo tower, powered from existing site
